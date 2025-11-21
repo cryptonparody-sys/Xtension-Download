@@ -98,31 +98,27 @@
             if (error.message.includes('Failed to fetch')) {
                 errorMessage = 'Cannot connect to server: http://77.90.51.74:8080\n\nThis usually means:\n1. Server is down\n2. Firewall blocking the connection\n3. Network connectivity issues\n\nPlease contact administrator if problem persists.';
             } else if (error.message.includes('Mixed Content')) {
-                // Provide direct download workaround
-                const directDownloadUrl = 'http://77.90.51.74:8080/health';
+                // Clear solution for mixed content issue
+                const instructions = `BROWSER SECURITY BLOCKED DOWNLOAD
 
-                // Try to get download URL directly from server
-                fetch('http://77.90.51.74:8080/api/generate-download-url', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ timestamp: Date.now() })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success && data.downloadUrl) {
-                        // Open the download URL directly
-                        window.open(data.downloadUrl, '_blank');
-                        showAlert('Download Started!',
-                            'Download link opened in new tab due to browser security.\n\nIf download doesn\'t start, the server needs SSL certificate.',
-                            'success');
-                    }
-                })
-                .catch(() => {
-                    // Fallback to health check
-                    window.open(directDownloadUrl, '_blank');
-                });
+📋 SOLUTION:
+Copy this link and paste in browser:
+http://77.90.51.74:8080/health
 
-                errorMessage = `Browser Security: Mixed Content blocked.\n\nTrying alternative download method...\nCheck the new tab for download.`;
+This will show server is working.
+For actual downloads, server needs SSL certificate.
+
+🔧 TECHNICAL:
+- Your site: HTTPS (secure)
+- Server: HTTP port 8080
+- Browser blocks HTTP requests from HTTPS pages
+
+💡 ALTERNATIVE:
+Contact administrator to add SSL certificate to server.`;
+
+                // Open server in new tab so user can see it works
+                window.open('http://77.90.51.74:8080/health', '_blank');
+                errorMessage = instructions;
             } else if (error.message.includes('CORS')) {
                 errorMessage = 'CORS error: Server needs to allow GitHub Pages.\n\nServer must include: Access-Control-Allow-Origin: https://cryptonparody-sys.github.io';
             } else if (error.name === 'TypeError' && error.message.includes('null')) {

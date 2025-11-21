@@ -19,7 +19,17 @@
     // Show modal function
     function showModal(content) {
         const modal = document.getElementById('installModal');
+        if (!modal) {
+            console.error('❌ Modal not found!');
+            return;
+        }
+
         const modalContent = modal.querySelector('.modal-content');
+        if (!modalContent) {
+            console.error('❌ Modal content not found!');
+            return;
+        }
+
         modalContent.innerHTML = content;
         modal.style.display = 'block';
         document.body.style.overflow = 'hidden';
@@ -89,11 +99,12 @@
 
     // Show error modal
     function showErrorModal(error) {
+        const safeError = String(error).replace(/</g, '&lt;').replace(/>/g, '&gt;');
         const content = `
             <div style="text-align: center; padding: 30px;">
                 <div style="background: #f8d7da; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                     <h3 style="color: #721c24; margin: 0;">❌ Download Failed</h3>
-                    <p style="color: #721c24; margin: 0;">${error}</p>
+                    <p style="color: #721c24; margin: 0;">${safeError}</p>
                 </div>
                 <button data-action="retry" style="background: #28a745; color: white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
                     🔄 Try Again
@@ -117,6 +128,11 @@
         console.log('🚀 Starting download process...');
 
         try {
+            // Check if required DOM elements exist
+            if (!document.getElementById('installModal')) {
+                throw new Error('Modal element not found');
+            }
+
             showLoadingModal('Connecting to server...');
 
             // Generate download URL
@@ -134,7 +150,7 @@
             console.log('Server response status:', response.status);
 
             if (!response.ok) {
-                throw new Error(`Server error: ${response.status}`);
+                throw new Error(`Server error: ${response.status} - ${response.statusText}`);
             }
 
             const data = await response.json();
@@ -158,8 +174,17 @@
 
         } catch (error) {
             console.error('❌ Error:', error);
-            showErrorModal(error.message);
             isDownloading = false;
+
+            // Handle different types of errors
+            let errorMessage = error.message;
+            if (error.name === 'TypeError' && error.message.includes('null')) {
+                errorMessage = 'Required page elements not found. Please refresh the page.';
+            } else if (error.name === 'NetworkError' || error.message.includes('fetch')) {
+                errorMessage = 'Network error. Please check your connection and try again.';
+            }
+
+            showErrorModal(errorMessage);
         }
     }
 
@@ -236,8 +261,9 @@
         // Keyboard navigation
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
-                if (modal && modal.style.display === 'block') {
-                    modal.style.display = 'none';
+                const modalElement = document.getElementById('installModal');
+                if (modalElement && modalElement.style.display === 'block') {
+                    modalElement.style.display = 'none';
                     document.body.style.overflow = 'auto';
                 }
             }

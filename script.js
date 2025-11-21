@@ -6,9 +6,9 @@
 
     console.log('🚀 Xtension Download Script - FIXED VERSION');
 
-    // Configuration - HTTPS ONLY
+    // Configuration - Server running on port 8080 (HTTP)
     const CONFIG = {
-        serverUrl: 'https://77.90.51.74:8080',
+        serverUrl: 'http://77.90.51.74:8080',
         endpoint: '/api/generate-download-url',
         timeout: 20000,
         retryAttempts: 2
@@ -96,9 +96,9 @@
             let errorMessage = error.message;
 
             if (error.message.includes('Failed to fetch')) {
-                errorMessage = 'Cannot connect to server: https://77.90.51.74:8080\n\nThis usually means:\n1. Server is down\n2. Server does not have HTTPS/SSL certificate\n3. Firewall blocking the connection\n\nPlease contact administrator to set up HTTPS on the server.';
-            } else if (error.message.includes('Mixed Content')) {
-                errorMessage = 'Security error: Browser blocked HTTP request from HTTPS page.\n\nThe server at 77.90.51.74:8080 needs an SSL certificate for HTTPS.';
+                errorMessage = 'Cannot connect to server: http://77.90.51.74:8080\n\nThis usually means:\n1. Server is down\n2. Firewall blocking the connection\n3. Network connectivity issues\n\nPlease contact administrator if problem persists.';
+            } else if (error.message.includes('Mixed Content') || error.message.includes('ERR_BLOCKED_BY_CLIENT')) {
+                errorMessage = 'Mixed Content Error: Browser blocked HTTP from HTTPS page.\n\nTry this workaround:\n1. Copy this link: http://77.90.51.74:8080/health\n2. Open it in a new tab to verify server works\n3. Then try download again\n\nOr use the direct download method.';
             } else if (error.message.includes('CORS')) {
                 errorMessage = 'CORS error: Server needs to allow GitHub Pages.\n\nServer must include: Access-Control-Allow-Origin: https://cryptonparody-sys.github.io';
             } else if (error.name === 'TypeError' && error.message.includes('null')) {
